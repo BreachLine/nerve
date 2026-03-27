@@ -1,0 +1,67 @@
+# Nerve configuration example
+# Copy to nerve.yaml and fill in your values
+
+llm:
+  provider: anthropic
+  api_key: ${NERVE_LLM_API_KEY}
+  model: claude-sonnet-4-5
+  temperature: 0.3
+  max_tokens: 4096
+  # base_url: http://localhost:11434/v1  # For local Ollama as LLM provider
+
+  fallback:
+    - provider: google
+      model: gemini-2.5-flash
+      api_key: ${GOOGLE_API_KEY}
+
+  routing:
+    reasoning: claude-sonnet-4-5
+    classification: gemini-2.5-flash
+    report_writing: claude-sonnet-4-5
+
+target:
+  url: http://localhost:11434
+  # api_key: ${TARGET_API_KEY}
+  # headers:
+  #   X-Custom-Auth: ${CUSTOM_TOKEN}
+
+  # MCP servers to audit
+  # mcp_servers:
+  #   - url: http://localhost:3000
+  #     transport: sse
+  #     token: ${MCP_TOKEN}
+
+  # Vector databases to audit
+  # vector_dbs:
+  #   - db_type: qdrant
+  #     url: http://localhost:6333
+  #     api_key: ${QDRANT_KEY}
+
+  # Chatbot endpoints to test
+  # chatbots:
+  #   - url: http://localhost:8080/chat
+  #     chat_type: rest
+  #     message_field: content
+  #     response_field: reply
+
+scan:
+  timeout: 600
+  rate_limit: 10
+  max_iterations: 20
+  categories:
+    - discovery
+    - model_probe
+    - mcp_audit
+    - infra_audit
+    - rag_audit
+    - agent_chain
+  # skip_categories:
+  #   - rag_audit
+
+output:
+  formats: [json, html]
+  directory: ./nerve-reports
+  # fail_on: high  # Exit 1 if any finding >= this severity
+
+# redis:
+#   url: redis://localhost:6379/0
