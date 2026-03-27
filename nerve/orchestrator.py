@@ -17,6 +17,7 @@ from nerve.agents.mcp_audit import MCPAuditAgent
 from nerve.agents.model_probe import ModelProbeAgent
 from nerve.agents.rag_audit import RAGAuditAgent
 from nerve.config import NerveConfig
+from nerve.llm_bridge import llm_call_fn
 from nerve.models.finding import Finding
 from nerve.models.scan import ScanResult, ScanStatus
 from nerve.tools.registry import create_tool_registry
@@ -31,6 +32,14 @@ _PROVIDER_MAP = {
     "google": LLMProvider.GOOGLE,
     "custom": LLMProvider.CUSTOM,
 }
+
+
+class _NerveRouter(LLMRouter):
+    """LLMRouter with refusal detection disabled for security audit context."""
+
+    @staticmethod
+    def _is_refusal(text: str) -> bool:
+        return False
 
 
 class NerveOrchestrator:
@@ -72,7 +81,7 @@ class NerveOrchestrator:
                     priority=2,
                 )
             )
-        self._llm_router = LLMRouter(providers)
+        self._llm_router = _NerveRouter(providers, call_fn=llm_call_fn)
 
         # Store + intelligence pool
         self._store = create_store(

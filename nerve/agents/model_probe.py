@@ -53,7 +53,7 @@ class ModelProbeAgent(NerveAgent):
             handoff_context=handoff_context,
             intel_context=intel_context,
             rate_limit=self._rate_limit,
-            max_iterations=self._config.max_iterations,
+            max_iterations=self.config.max_iterations,
         )
-        self._config.system_prompt = system_prompt
+        self.set_system_prompt(system_prompt)
         return await super().run(task, **kwargs)

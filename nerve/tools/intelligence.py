@@ -13,32 +13,53 @@ logger = structlog.get_logger()
 
 
 async def web_search(query: str = "", max_results: int = 5) -> str:
-    """Search the web using DuckDuckGo Lite — returns titles, URLs, snippets."""
+    """Search the web using DuckDuckGo JSON API — returns titles, URLs, snippets."""
+    import re
+
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            # Use DuckDuckGo HTML search and parse results
             r = await client.get(
-                "https://lite.duckduckgo.com/lite/",
+                "https://html.duckduckgo.com/html/",
                 params={"q": query},
-                headers={"User-Agent": "Nerve-AI-Audit/0.1"},
-                follow_redirects=True,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                    ),
+                },
             )
             if r.status_code == 200:
-                # Parse simple HTML results
                 text = r.text
                 results: list[str] = [f"Web search results for: {query}"]
-                # Extract links from DuckDuckGo lite HTML
-                import re
-                links = re.findall(r'<a[^>]+href="([^"]+)"[^>]*>([^<]+)</a>', text)
+                # Parse result blocks from DuckDuckGo HTML
+                result_blocks = re.findall(
+                    r'<a[^>]+class="result__a"[^>]*href="([^"]*)"[^>]*>(.*?)</a>.*?'
+                    r'<a[^>]+class="result__snippet"[^>]*>(.*?)</a>',
+                    text,
+                    re.DOTALL,
+                )
                 count = 0
-                for href, title in links:
-                    if href.startswith("http") and "duckduckgo" not in href:
-                        results.append(f"  [{count + 1}] {title.strip()}")
-                        results.append(f"      URL: {href}")
+                for href, title, snippet in result_blocks:
+                    # Clean HTML tags from title and snippet
+                    clean_title = re.sub(r"<[^>]+>", "", title).strip()
+                    clean_snippet = re.sub(r"<[^>]+>", "", snippet).strip()
+                    # DuckDuckGo wraps actual URLs in redirect URLs
+                    actual_url = href
+                    url_match = re.search(r"uddg=([^&]+)", href)
+                    if url_match:
+                        from urllib.parse import unquote
+                        actual_url = unquote(url_match.group(1))
+                    if clean_title:
+                        results.append(f"  [{count + 1}] {clean_title}")
+                        results.append(f"      URL: {actual_url}")
+                        if clean_snippet:
+                            results.append(f"      {clean_snippet[:200]}")
                         count += 1
                         if count >= max_results:
                             break
                 if count == 0:
-                    results.append("  No results found.")
+                    results.append("  No results found from HTML parsing.")
                 return "\n".join(results)
             return f"Search failed: Status {r.status_code}"
     except Exception as e:

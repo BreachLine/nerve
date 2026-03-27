@@ -38,9 +38,9 @@ class DiscoveryAgent(NerveAgent):
         system_prompt = build_discovery_prompt(
             target=self._target or task,
             rate_limit=self._rate_limit,
-            max_iterations=self._config.max_iterations,
+            max_iterations=self.config.max_iterations,
         )
-        self._config.system_prompt = system_prompt
+        self.set_system_prompt(system_prompt)
         return await super().run(task, **kwargs)
 
     def create_handoff(self, to_agent: str) -> AgentHandoff:

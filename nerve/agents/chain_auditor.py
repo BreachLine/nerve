@@ -56,9 +56,9 @@ class ChainAuditorAgent(NerveAgent):
         system_prompt = build_chain_auditor_prompt(
             findings_summary=findings_summary,
             intel_context=intel_context,
-            max_iterations=self._config.max_iterations,
+            max_iterations=self.config.max_iterations,
         )
-        self._config.system_prompt = system_prompt
+        self.set_system_prompt(system_prompt)
 
         result = await super().run(task, **kwargs)
 
