@@ -20,14 +20,14 @@ class TestConfig:
     def test_cli_overrides(self):
         cfg = NerveConfig.load(cli_overrides={
             "target": "http://test:11434",
-            "llm_api_key": "sk-test",
+            "llm_api_key": "test-dummy-key",
             "llm_provider": "openai",
             "rate_limit": 5,
             "format": "json,html,sarif",
             "fail_on": "high",
         })
         assert cfg.target.url == "http://test:11434"
-        assert cfg.llm.api_key == "sk-test"
+        assert cfg.llm.api_key == "test-dummy-key"
         assert cfg.llm.provider == "openai"
         assert cfg.scan.rate_limit == 5
         assert cfg.output.formats == ["json", "html", "sarif"]

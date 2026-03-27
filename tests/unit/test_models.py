@@ -102,9 +102,9 @@ class TestScanResult:
 
 class TestTarget:
     def test_target_auth_headers(self):
-        t = Target(url="http://test", api_key="sk-123", headers={"X-Custom": "val"})
+        t = Target(url="http://test", api_key="test-dummy-key", headers={"X-Custom": "val"})
         h = t.get_auth_headers()
-        assert h["Authorization"] == "Bearer sk-123"
+        assert h["Authorization"] == "Bearer test-dummy-key"
         assert h["X-Custom"] == "val"
 
     def test_endpoint_model(self):
