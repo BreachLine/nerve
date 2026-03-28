@@ -145,13 +145,22 @@ def get_atlas_context_for_agent(agent_type: str) -> str:
     relevant: dict[str, list[str]] = {
         "discovery": ["AML.T0014", "AML.T0007", "AML.T0058"],
         "model_probe": [
-            "AML.T0051", "AML.T0054", "AML.T0061", "AML.T0024", "AML.T0047", "AML.T0029",
+            "AML.T0051",
+            "AML.T0054",
+            "AML.T0061",
+            "AML.T0024",
+            "AML.T0047",
+            "AML.T0029",
         ],
         "mcp_audit": ["AML.T0055", "AML.T0056", "AML.T0057", "AML.T0060"],
         "infra_audit": ["AML.T0010", "AML.T0012", "AML.T0028", "AML.T0029"],
         "rag_audit": ["AML.T0059", "AML.T0020", "AML.T0044"],
         "agent_chain": [
-            "AML.T0051", "AML.T0055", "AML.T0056", "AML.T0060", "AML.T0096",
+            "AML.T0051",
+            "AML.T0055",
+            "AML.T0056",
+            "AML.T0060",
+            "AML.T0096",
         ],
     }
     ids = relevant.get(agent_type, list(ATLAS_TECHNIQUES.keys()))

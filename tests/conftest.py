@@ -74,9 +74,11 @@ def sample_scan_result(sample_finding: Finding) -> ScanResult:
 
 @pytest.fixture
 def sample_config() -> NerveConfig:
-    return NerveConfig.load(cli_overrides={
-        "target": "http://localhost:11434",
-        "llm_api_key": "test-key",
-        "llm_provider": "anthropic",
-        "llm_model": "claude-sonnet-4-5",
-    })
+    return NerveConfig.load(
+        cli_overrides={
+            "target": "http://localhost:11434",
+            "llm_api_key": "test-key",
+            "llm_provider": "anthropic",
+            "llm_model": "claude-sonnet-4-5",
+        }
+    )

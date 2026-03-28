@@ -87,6 +87,7 @@ def render_html(result: ScanResult) -> str:
     # Sort findings by severity (critical first)
     from nerve import __version__
     from nerve.models.finding import SEVERITY_ORDER
+
     sorted_findings = sorted(result.findings, key=lambda f: SEVERITY_ORDER[f.severity], reverse=True)
 
     findings_parts: list[str] = []
@@ -116,7 +117,7 @@ def render_html(result: ScanResult) -> str:
       <span>Target: {_escape(f.target)}</span>
       <span>CVSS: {f.cvss}</span>
       <span>Confidence: {f.confidence:.0%}</span>
-      {f'<span>{tags}</span>' if tags else ''}
+      {f"<span>{tags}</span>" if tags else ""}
     </div>
     <p>{_escape(f.description)}</p>
     {evidence_html}

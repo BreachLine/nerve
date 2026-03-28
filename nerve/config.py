@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field
 
-from nerve.models.target import ChatbotTarget, MCPTarget, Target, VectorDBTarget
+from nerve.models.target import MCPTarget, Target, VectorDBTarget
 
 
 def _env_interpolate(value: str) -> str:
@@ -187,13 +187,9 @@ class NerveConfig(BaseModel):
             if config.target.mcp_servers:
                 config.target.mcp_servers[0].token = v
             else:
-                config.target.mcp_servers.append(
-                    MCPTarget(url=config.target.url, token=v)
-                )
+                config.target.mcp_servers.append(MCPTarget(url=config.target.url, token=v))
         if v := overrides.get("mcp_command"):
-            config.target.mcp_servers.append(
-                MCPTarget(command=v, transport="stdio")
-            )
+            config.target.mcp_servers.append(MCPTarget(command=v, transport="stdio"))
 
         # Vector DB
         if v := overrides.get("qdrant_url"):
@@ -201,8 +197,6 @@ class NerveConfig(BaseModel):
                 VectorDBTarget(db_type="qdrant", url=v, api_key=overrides.get("qdrant_api_key", ""))
             )
         if v := overrides.get("weaviate_url"):
-            config.target.vector_dbs.append(
-                VectorDBTarget(db_type="weaviate", url=v)
-            )
+            config.target.vector_dbs.append(VectorDBTarget(db_type="weaviate", url=v))
 
         return config

@@ -93,8 +93,8 @@ def create_tool_registry(
     # ─── HTTP tools ──────────────────────────────────────────────
     registry.register(
         "http_request",
-        handler=lambda method="GET", url="", headers="", body="", cookies="", timeout=15.0, follow_redirects=False: http_request(
-            method, url, headers, body, cookies, timeout, follow_redirects, rl
+        handler=lambda method="GET", url="", headers="", body="", cookies="", timeout=15.0, follow_redirects=False: (
+            http_request(method, url, headers, body, cookies, timeout, follow_redirects, rl)
         ),
         category="http",
         description="Make HTTP request with full control (method, headers, body, cookies). Headers as 'Key:Value' separated by '|'.",
@@ -105,7 +105,10 @@ def create_tool_registry(
             _dry_run_stub("http_post_json")
             if dry_run
             else lambda url="", json_body="", headers="": http_post_json(
-                url, json_body, headers, rate_limiter=rl,
+                url,
+                json_body,
+                headers,
+                rate_limiter=rl,
             )
         ),
         category="http",
@@ -224,8 +227,16 @@ def create_tool_registry(
     # ─── Chatbot tools ───────────────────────────────────────────
     registry.register(
         "chatbot_send",
-        handler=lambda url="", message="", message_field="content", response_field="reply", session_cookie="", headers_str="": chatbot_send(
-            url, message, message_field, response_field, session_cookie, headers_str, rate_limiter=rl
+        handler=lambda url="", message="", message_field="content", response_field="reply", session_cookie="", headers_str="": (
+            chatbot_send(
+                url,
+                message,
+                message_field,
+                response_field,
+                session_cookie,
+                headers_str,
+                rate_limiter=rl,
+            )
         ),
         category="chatbot",
         description="Send a message to a chatbot endpoint and get the response.",

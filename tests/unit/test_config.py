@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import tempfile
-from pathlib import Path
 
 from nerve.config import NerveConfig
 
@@ -18,14 +17,16 @@ class TestConfig:
         assert cfg.scan.timeout == 600
 
     def test_cli_overrides(self):
-        cfg = NerveConfig.load(cli_overrides={
-            "target": "http://test:11434",
-            "llm_api_key": "test-dummy-key",
-            "llm_provider": "openai",
-            "rate_limit": 5,
-            "format": "json,html,sarif",
-            "fail_on": "high",
-        })
+        cfg = NerveConfig.load(
+            cli_overrides={
+                "target": "http://test:11434",
+                "llm_api_key": "test-dummy-key",
+                "llm_provider": "openai",
+                "rate_limit": 5,
+                "format": "json,html,sarif",
+                "fail_on": "high",
+            }
+        )
         assert cfg.target.url == "http://test:11434"
         assert cfg.llm.api_key == "test-dummy-key"
         assert cfg.llm.provider == "openai"
@@ -72,29 +73,35 @@ llm:
         assert cfg.llm.api_key == "env-key-123"
 
     def test_target_auth_overrides(self):
-        cfg = NerveConfig.load(cli_overrides={
-            "target": "http://test",
-            "target_api_key": "target-key",
-            "target_headers": "X-Auth:token123,X-Org:myorg",
-        })
+        cfg = NerveConfig.load(
+            cli_overrides={
+                "target": "http://test",
+                "target_api_key": "target-key",
+                "target_headers": "X-Auth:token123,X-Org:myorg",
+            }
+        )
         assert cfg.target.api_key == "target-key"
         assert cfg.target.headers["X-Auth"] == "token123"
         assert cfg.target.headers["X-Org"] == "myorg"
 
     def test_mcp_override(self):
-        cfg = NerveConfig.load(cli_overrides={
-            "target": "http://mcp:3000",
-            "mcp_token": "mcp-secret",
-        })
+        cfg = NerveConfig.load(
+            cli_overrides={
+                "target": "http://mcp:3000",
+                "mcp_token": "mcp-secret",
+            }
+        )
         assert len(cfg.target.mcp_servers) == 1
         assert cfg.target.mcp_servers[0].token == "mcp-secret"
 
     def test_vector_db_override(self):
-        cfg = NerveConfig.load(cli_overrides={
-            "target": "http://app",
-            "qdrant_url": "http://qdrant:6333",
-            "qdrant_api_key": "qd-key",
-        })
+        cfg = NerveConfig.load(
+            cli_overrides={
+                "target": "http://app",
+                "qdrant_url": "http://qdrant:6333",
+                "qdrant_api_key": "qd-key",
+            }
+        )
         assert len(cfg.target.vector_dbs) == 1
         assert cfg.target.vector_dbs[0].db_type == "qdrant"
         assert cfg.target.vector_dbs[0].api_key == "qd-key"

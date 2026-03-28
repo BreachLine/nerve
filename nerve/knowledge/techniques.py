@@ -27,7 +27,10 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "craft inputs containing hidden instructions. Place directives in HTML comments, "
                 "invisible text, or seemingly benign content that redirects model behavior."
             ),
-            "indicators": ["model executes hidden instruction", "behavior changes after processing external data"],
+            "indicators": [
+                "model executes hidden instruction",
+                "behavior changes after processing external data",
+            ],
             "escalation": "Use invisible unicode characters or embed in structured data formats.",
             "owasp": "LLM01",
             "atlas": "AML.T0051.001",
@@ -144,7 +147,10 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "Try listing tools, calling tools, and accessing resources. "
                 "Check both SSE and stdio transports."
             ),
-            "indicators": ["server responds to unauthenticated requests", "tools are callable without auth"],
+            "indicators": [
+                "server responds to unauthenticated requests",
+                "tools are callable without auth",
+            ],
             "escalation": "If auth exists, test with expired/malformed/revoked tokens.",
             "owasp": "MCP07",
             "atlas": "AML.T0012",
@@ -173,7 +179,11 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "cloud metadata endpoints, file:// protocol, DNS rebinding. "
                 "Check if responses contain internal data."
             ),
-            "indicators": ["internal network data returned", "cloud metadata accessible", "file read successful"],
+            "indicators": [
+                "internal network data returned",
+                "cloud metadata accessible",
+                "file read successful",
+            ],
             "escalation": "Try DNS rebinding, protocol smuggling (gopher://, dict://).",
             "owasp": "MCP05",
             "atlas": "AML.T0055",
@@ -187,7 +197,11 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "For path parameters: ../../../etc/passwd, ..%2f "
                 "For template parameters: {{7*7}}, ${7*7}, #{7*7}"
             ),
-            "indicators": ["command output in response", "file content returned", "template evaluated"],
+            "indicators": [
+                "command output in response",
+                "file content returned",
+                "template evaluated",
+            ],
             "escalation": "Chain with SSRF or other tools for deeper access.",
             "owasp": "MCP05",
             "atlas": "AML.T0055",
@@ -203,7 +217,10 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "Place injection in: document metadata, invisible text, HTML comments, "
                 "content that appears benign but contains directives."
             ),
-            "indicators": ["chatbot behavior changes after document upload", "injected instructions executed"],
+            "indicators": [
+                "chatbot behavior changes after document upload",
+                "injected instructions executed",
+            ],
             "escalation": "Combine with retrieval manipulation to ensure poisoned doc is always retrieved.",
             "owasp": "LLM08",
             "atlas": "AML.T0020",
@@ -217,7 +234,11 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "Query for sensitive data. Insert test documents. "
                 "Test cross-tenant isolation if multi-tenant."
             ),
-            "indicators": ["unauthenticated access", "data from other tenants", "successful insertion"],
+            "indicators": [
+                "unauthenticated access",
+                "data from other tenants",
+                "successful insertion",
+            ],
             "escalation": "Exfiltrate document content via crafted similarity queries.",
             "owasp": "LLM08",
             "atlas": "AML.T0059",
@@ -233,7 +254,11 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "malformed tokens. Check management endpoints (/admin, /models, /fine-tuning). "
                 "Verify CORS configuration."
             ),
-            "indicators": ["access without credentials", "cross-user access", "management endpoint exposed"],
+            "indicators": [
+                "access without credentials",
+                "cross-user access",
+                "management endpoint exposed",
+            ],
             "escalation": "Test rate limiting bypass and enumerate valid API keys.",
             "owasp": "LLM03",
             "atlas": "AML.T0012",
@@ -247,7 +272,11 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "Verify trust_remote_code settings. Check for auto_map vulnerabilities (CVE-2025-66448). "
                 "Test model download integrity verification."
             ),
-            "indicators": ["unsafe deserialization detected", "trust_remote_code enabled", "no integrity checks"],
+            "indicators": [
+                "unsafe deserialization detected",
+                "trust_remote_code enabled",
+                "no integrity checks",
+            ],
             "escalation": "Attempt to serve malicious model files if model pull is accessible.",
             "owasp": "LLM03",
             "atlas": "AML.T0010",
@@ -257,7 +286,9 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
     "model_extraction": [
         {
             "name": "query_based_model_cloning",
-            "description": "Extract model behavior by systematically querying the API and collecting input-output pairs.",
+            "description": (
+                "Extract model behavior by systematically querying the API and collecting input-output pairs."
+            ),
             "methodology": (
                 "Send a diverse set of prompts to the target model and record responses. "
                 "Start with boundary-testing prompts (edge cases, adversarial inputs) to map "
@@ -385,7 +416,10 @@ TECHNIQUE_LIBRARY: dict[str, list[dict]] = {
                 "Score chains by: impact * likelihood * exploitability. "
                 "Generate exploitation narratives for each chain."
             ),
-            "indicators": ["multi-step exploitation path identified", "privilege escalation chain found"],
+            "indicators": [
+                "multi-step exploitation path identified",
+                "privilege escalation chain found",
+            ],
             "escalation": "Test the chain end-to-end if possible.",
             "owasp": "LLM06",
             "atlas": "AML.T0060",

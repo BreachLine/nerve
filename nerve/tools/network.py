@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
-import ssl
 import socket
+import ssl
 
 import httpx
 import structlog
@@ -32,13 +32,11 @@ async def port_scan(
         if rate_limiter:
             await rate_limiter.acquire()
         try:
-            _, writer = await asyncio.wait_for(
-                asyncio.open_connection(host, port), timeout=timeout
-            )
+            _, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout=timeout)
             writer.close()
             await writer.wait_closed()
             return {"host": host, "port": port, "state": "open"}
-        except (asyncio.TimeoutError, OSError, ConnectionRefusedError):
+        except (TimeoutError, OSError, ConnectionRefusedError):
             return None
 
     # Handle CIDR ranges

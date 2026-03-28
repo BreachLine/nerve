@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
-from reactswarm import AgentResult, LLMProvider, LLMRouter, ProviderConfig, ToolRegistry
+from reactswarm import LLMProvider, LLMRouter, ProviderConfig, ToolRegistry
 from reactswarm.team import IntelligencePool, create_store
 
 from nerve.agents.chain_auditor import ChainAuditorAgent
@@ -79,7 +79,8 @@ class NerveOrchestrator:
         """Set up tools, LLM router, and intelligence sharing."""
         # Tool registry
         self._registry = create_tool_registry(
-            self._rate_limiter, dry_run=self.config.scan.dry_run,
+            self._rate_limiter,
+            dry_run=self.config.scan.dry_run,
         )
 
         # LLM router
@@ -135,7 +136,7 @@ class NerveOrchestrator:
     async def run_scan(self, on_progress=None) -> ScanResult:
         """Execute the full scan lifecycle."""
         self.scan_result.status = ScanStatus.RUNNING
-        self.scan_result.started_at = datetime.now(timezone.utc)
+        self.scan_result.started_at = datetime.now(UTC)
         start_time = time.monotonic()
 
         target = self.config.target.url or self.config.target.cidr
@@ -233,7 +234,7 @@ class NerveOrchestrator:
                 self.scan_result.add_finding(f)
             self.scan_result.compute_risk_score()
             self.scan_result.status = ScanStatus.COMPLETED
-            self.scan_result.completed_at = datetime.now(timezone.utc)
+            self.scan_result.completed_at = datetime.now(UTC)
             self.scan_result.duration_seconds = time.monotonic() - start_time
 
         except Exception as e:

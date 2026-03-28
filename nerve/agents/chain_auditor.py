@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 from reactswarm import AgentResult, ToolRegistry
 
 from nerve.agents.base import NerveAgent

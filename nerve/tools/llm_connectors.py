@@ -38,11 +38,7 @@ async def ollama_chat(
                 data = r.json()
                 content = data.get("message", {}).get("content", "")
                 eval_dur = data.get("eval_duration", 0)
-                return (
-                    f"MODEL: {model}\n"
-                    f"RESPONSE:\n{content}\n"
-                    f"EVAL_DURATION: {eval_dur}ns"
-                )
+                return f"MODEL: {model}\nRESPONSE:\n{content}\nEVAL_DURATION: {eval_dur}ns"
             return f"ERROR: Status {r.status_code}\nBODY: {r.text[:2000]}"
     except Exception as e:
         return f"ERROR: {e}"
@@ -89,11 +85,7 @@ async def openai_chat(
                 data = r.json()
                 content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
                 usage = data.get("usage", {})
-                return (
-                    f"MODEL: {model}\n"
-                    f"RESPONSE:\n{content}\n"
-                    f"USAGE: {json.dumps(usage)}"
-                )
+                return f"MODEL: {model}\nRESPONSE:\n{content}\nUSAGE: {json.dumps(usage)}"
             return f"ERROR: Status {r.status_code}\nBODY: {r.text[:2000]}"
     except Exception as e:
         return f"ERROR: {e}"
@@ -183,12 +175,7 @@ async def embedding_request(
                 data = r.json()
                 emb = data.get("data", [{}])[0].get("embedding", [])
                 usage = data.get("usage", {})
-                return (
-                    f"MODEL: {model}\n"
-                    f"DIMENSIONS: {len(emb)}\n"
-                    f"FIRST_5: {emb[:5]}\n"
-                    f"USAGE: {json.dumps(usage)}"
-                )
+                return f"MODEL: {model}\nDIMENSIONS: {len(emb)}\nFIRST_5: {emb[:5]}\nUSAGE: {json.dumps(usage)}"
             return f"ERROR: Status {r.status_code}\nBODY: {r.text[:1000]}"
     except Exception as e:
         return f"ERROR: {e}"

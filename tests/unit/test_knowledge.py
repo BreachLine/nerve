@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+from nerve.knowledge.cve_db import lookup_cves
+from nerve.knowledge.cwe_mapping import get_cwe
+from nerve.knowledge.mitre_atlas import (
+    ATLAS_TECHNIQUES,
+    get_atlas_context_for_agent,
+    get_atlas_technique,
+)
 from nerve.knowledge.owasp_llm import OWASP_LLM_TOP10, get_methodology_for_agent, get_owasp_llm
 from nerve.knowledge.owasp_mcp import OWASP_MCP_TOP10, get_mcp_methodology, get_owasp_mcp
-from nerve.knowledge.mitre_atlas import ATLAS_TECHNIQUES, get_atlas_context_for_agent, get_atlas_technique
-from nerve.knowledge.cve_db import lookup_cves
-from nerve.knowledge.cwe_mapping import CWE_MAP, get_cwe
-from nerve.knowledge.techniques import TECHNIQUE_LIBRARY, build_technique_context, get_techniques_for_category
+from nerve.knowledge.techniques import (
+    TECHNIQUE_LIBRARY,
+    build_technique_context,
+    get_techniques_for_category,
+)
 
 
 class TestOWASPLLM:

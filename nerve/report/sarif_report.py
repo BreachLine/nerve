@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from nerve.models.finding import SEVERITY_ORDER, Severity
+from nerve.models.finding import Severity
 from nerve.models.scan import ScanResult
 
 _SARIF_SEVERITY_MAP = {
@@ -27,19 +27,27 @@ def render_sarif(result: ScanResult) -> str:
         rule_id = f"nerve/{finding.module}/{finding.category or 'general'}"
         if rule_id not in rule_ids_seen:
             rule_ids_seen.add(rule_id)
-            rules.append({
-                "id": rule_id,
-                "name": finding.title,
-                "shortDescription": {"text": finding.title},
-                "fullDescription": {"text": finding.description or finding.title},
-                "helpUri": finding.references[0] if finding.references else "",
-                "properties": {
-                    "tags": [
-                        t for t in [finding.owasp_llm, finding.owasp_mcp, finding.mitre_atlas, finding.cwe]
-                        if t
-                    ],
-                },
-            })
+            rules.append(
+                {
+                    "id": rule_id,
+                    "name": finding.title,
+                    "shortDescription": {"text": finding.title},
+                    "fullDescription": {"text": finding.description or finding.title},
+                    "helpUri": finding.references[0] if finding.references else "",
+                    "properties": {
+                        "tags": [
+                            t
+                            for t in [
+                                finding.owasp_llm,
+                                finding.owasp_mcp,
+                                finding.mitre_atlas,
+                                finding.cwe,
+                            ]
+                            if t
+                        ],
+                    },
+                }
+            )
 
         sarif_result: dict = {
             "ruleId": rule_id,

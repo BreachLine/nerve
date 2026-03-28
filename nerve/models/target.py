@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class AIServiceType(str, Enum):
+class AIServiceType(StrEnum):
     OLLAMA = "ollama"
     VLLM = "vllm"
     OPENAI_COMPAT = "openai_compatible"

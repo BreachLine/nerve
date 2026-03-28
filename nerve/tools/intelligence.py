@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 import httpx
 import structlog
 
@@ -49,6 +47,7 @@ async def web_search(query: str = "", max_results: int = 5) -> str:
                     url_match = re.search(r"uddg=([^&]+)", href)
                     if url_match:
                         from urllib.parse import unquote
+
                         actual_url = unquote(url_match.group(1))
                     if clean_title:
                         results.append(f"  [{count + 1}] {clean_title}")
@@ -74,6 +73,7 @@ async def web_fetch(url: str = "", max_length: int = 10000) -> str:
             if r.status_code == 200:
                 # Strip HTML tags for clean text
                 import re
+
                 text = re.sub(r"<[^>]+>", " ", r.text)
                 text = re.sub(r"\s+", " ", text).strip()
                 return f"Content from {url}:\n{text[:max_length]}"
@@ -104,11 +104,6 @@ async def cve_lookup(
     # Try OSV.dev for additional CVEs
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            payload = {}
-            if cve_id:
-                payload = {"query": cve_id}
-            else:
-                payload = {"query": product}
             r = await client.post(
                 "https://api.osv.dev/v1/query",
                 json={"package": {"name": product, "ecosystem": "PyPI"}} if not cve_id else {"query": cve_id},
@@ -119,9 +114,7 @@ async def cve_lookup(
                 if vulns:
                     results.append(f"\nOSV.dev results ({len(vulns)}):")
                     for v in vulns[:5]:
-                        results.append(
-                            f"  {v.get('id', 'N/A')}: {v.get('summary', 'No summary')}"
-                        )
+                        results.append(f"  {v.get('id', 'N/A')}: {v.get('summary', 'No summary')}")
     except Exception:
         pass  # OSV.dev lookup is best-effort
 

@@ -7,7 +7,7 @@ import re
 from typing import Any
 
 import structlog
-from reactswarm import AgentResult, ToolRegistry
+from reactswarm import ToolRegistry
 from reactswarm.team import AgentRole, LoopAgent, LoopConfig
 
 from nerve.models.finding import Evidence, Finding, Severity
@@ -69,10 +69,7 @@ class NerveAgent(LoopAgent):
             tool_descriptions = ""
             if self._tool_registry:
                 schemas = self._tool_registry.get_all_schemas()
-                tool_descriptions = "\n".join(
-                    f"- {s['name']}: {s.get('description', '')}"
-                    for s in schemas
-                )
+                tool_descriptions = "\n".join(f"- {s['name']}: {s.get('description', '')}" for s in schemas)
 
             system_prompt = self._nerve_system_prompt
             if tool_descriptions:
@@ -104,10 +101,7 @@ class NerveAgent(LoopAgent):
         tool_descriptions = ""
         if self._tool_registry:
             schemas = self._tool_registry.get_all_schemas()
-            tool_descriptions = "\n".join(
-                f"- {s['name']}: {s.get('description', '')}"
-                for s in schemas
-            )
+            tool_descriptions = "\n".join(f"- {s['name']}: {s.get('description', '')}" for s in schemas)
 
         system_prompt = self._nerve_system_prompt
         if tool_descriptions:
@@ -140,7 +134,7 @@ class NerveAgent(LoopAgent):
         import re as _re
 
         # Format 1: ```json {"tool": "...", "args": {...}} ```
-        json_blocks = _re.findall(r'```(?:json)?\s*(\{[^`]+\})\s*```', content, _re.DOTALL)
+        json_blocks = _re.findall(r"```(?:json)?\s*(\{[^`]+\})\s*```", content, _re.DOTALL)
         for block in json_blocks:
             try:
                 parsed = json.loads(block.strip())
@@ -150,7 +144,7 @@ class NerveAgent(LoopAgent):
                 continue
 
         # Format 2: ACTION: {"tool": "...", "parameters": {...}}
-        action_match = _re.search(r'ACTION:\s*(\{[^}]+(?:\{[^}]*\}[^}]*)*\})', content, _re.DOTALL)
+        action_match = _re.search(r"ACTION:\s*(\{[^}]+(?:\{[^}]*\}[^}]*)*\})", content, _re.DOTALL)
         if action_match:
             try:
                 parsed = json.loads(action_match.group(1))
@@ -176,7 +170,7 @@ class NerveAgent(LoopAgent):
         if self._tool_registry:
             tool_names = self._tool_registry.list_tools()
             for tn in tool_names:
-                pattern = rf'{_re.escape(tn)}\s*\(([^)]*)\)'
+                pattern = rf"{_re.escape(tn)}\s*\(([^)]*)\)"
                 fn_match = _re.search(pattern, content)
                 if fn_match:
                     args_str = fn_match.group(1)
@@ -193,7 +187,7 @@ class NerveAgent(LoopAgent):
                     args = {}
                     urls = _re.findall(r'https?://[^\s"\'`,\)\]]+', content)
                     if urls:
-                        args = {"url": urls[0].rstrip('.')}
+                        args = {"url": urls[0].rstrip(".")}
                     return {"tool": tn, "args": args}
 
         return None
@@ -211,9 +205,7 @@ class NerveAgent(LoopAgent):
         # Share latest finding with other agents via intelligence pool
         if self._nerve_findings and self._intel_pool:
             try:
-                await self._intel_pool.share_finding(
-                    self._nerve_findings[-1].to_agent_dict(), source=self.name
-                )
+                await self._intel_pool.share_finding(self._nerve_findings[-1].to_agent_dict(), source=self.name)
             except Exception:
                 pass
 

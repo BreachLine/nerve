@@ -132,6 +132,7 @@ async def vector_insert(
             if db_type == "qdrant":
                 # Try to create a point with a dummy vector
                 import random
+
                 dummy_vector = [random.random() for _ in range(384)]  # noqa: S311
                 payload = {
                     "points": [

@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import sys
-from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.live import Live
 from rich.panel import Panel
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Table
@@ -33,7 +30,7 @@ def _version_callback(value: bool) -> None:
 
 @app.callback()
 def main(
-    version: Optional[bool] = typer.Option(None, "--version", "-V", callback=_version_callback, is_eager=True),
+    version: bool | None = typer.Option(None, "--version", "-V", callback=_version_callback, is_eager=True),
 ) -> None:
     """Nerve — AI-powered security auditor for AI systems."""
 
@@ -41,34 +38,39 @@ def main(
 @app.command()
 def scan(
     target: str = typer.Argument(..., help="Target URL, host, or CIDR range"),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Path to nerve.yaml config file"),
-    llm_provider: Optional[str] = typer.Option(None, "--llm-provider", help="LLM provider (anthropic, openai, google)"),
-    llm_api_key: Optional[str] = typer.Option(None, "--llm-api-key", help="LLM API key (or set NERVE_LLM_API_KEY)"),
-    llm_model: Optional[str] = typer.Option(None, "--llm-model", help="LLM model name"),
-    redis_url: Optional[str] = typer.Option(None, "--redis-url", help="Redis URL for persistent scans"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="Output file/directory"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Path to nerve.yaml config file"),
+    llm_provider: str | None = typer.Option(None, "--llm-provider", help="LLM provider (anthropic, openai, google)"),
+    llm_api_key: str | None = typer.Option(None, "--llm-api-key", help="LLM API key (or set NERVE_LLM_API_KEY)"),
+    llm_model: str | None = typer.Option(None, "--llm-model", help="LLM model name"),
+    redis_url: str | None = typer.Option(None, "--redis-url", help="Redis URL for persistent scans"),
+    output: str | None = typer.Option(None, "--output", "-o", help="Output file/directory"),
     fmt: str = typer.Option("json", "--format", "-f", help="Output formats: json,html,sarif"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show agent reasoning live"),
     timeout: int = typer.Option(600, "--timeout", help="Max scan duration in seconds"),
     rate_limit: int = typer.Option(10, "--rate-limit", help="Max requests/second to target"),
-    fail_on: Optional[str] = typer.Option(None, "--fail-on", help="Exit 1 if findings >= severity (critical,high,medium,low)"),
+    fail_on: str | None = typer.Option(
+        None, "--fail-on", help="Exit 1 if findings >= severity (critical,high,medium,low)"
+    ),
     dry_run: bool = typer.Option(
-        False, "--dry-run",
+        False,
+        "--dry-run",
         help="Read-only mode — block tools that modify external state",
     ),
     no_color: bool = typer.Option(False, "--no-color", help="Disable colored output"),
-    target_api_key: Optional[str] = typer.Option(None, "--target-api-key", help="Target's API key"),
-    target_bearer_token: Optional[str] = typer.Option(None, "--target-bearer-token", help="Target's bearer token"),
-    target_headers: Optional[str] = typer.Option(None, "--target-headers", help="Custom headers (Key:Value,Key:Value)"),
-    target_basic_auth: Optional[str] = typer.Option(None, "--target-basic-auth", help="HTTP basic auth (user:pass)"),
-    mcp_transport: Optional[str] = typer.Option(None, "--mcp-transport", help="MCP transport (sse or stdio)"),
-    mcp_token: Optional[str] = typer.Option(None, "--mcp-token", help="MCP auth token"),
-    qdrant_url: Optional[str] = typer.Option(None, "--qdrant-url", help="Qdrant vector DB URL"),
-    qdrant_api_key: Optional[str] = typer.Option(None, "--qdrant-api-key", help="Qdrant API key"),
-    weaviate_url: Optional[str] = typer.Option(None, "--weaviate-url", help="Weaviate URL"),
+    target_api_key: str | None = typer.Option(None, "--target-api-key", help="Target's API key"),
+    target_bearer_token: str | None = typer.Option(None, "--target-bearer-token", help="Target's bearer token"),
+    target_headers: str | None = typer.Option(None, "--target-headers", help="Custom headers (Key:Value,Key:Value)"),
+    target_basic_auth: str | None = typer.Option(None, "--target-basic-auth", help="HTTP basic auth (user:pass)"),
+    mcp_transport: str | None = typer.Option(None, "--mcp-transport", help="MCP transport (sse or stdio)"),
+    mcp_token: str | None = typer.Option(None, "--mcp-token", help="MCP auth token"),
+    qdrant_url: str | None = typer.Option(None, "--qdrant-url", help="Qdrant vector DB URL"),
+    qdrant_api_key: str | None = typer.Option(None, "--qdrant-api-key", help="Qdrant API key"),
+    weaviate_url: str | None = typer.Option(None, "--weaviate-url", help="Weaviate URL"),
 ) -> None:
     """Full autonomous AI security scan — discover, test, and report."""
-    overrides = {k: v for k, v in locals().items() if v is not None and k not in ("config", "no_color", "fmt", "dry_run")}
+    overrides = {
+        k: v for k, v in locals().items() if v is not None and k not in ("config", "no_color", "fmt", "dry_run")
+    }
     overrides["format"] = fmt
     overrides["target"] = target
     if dry_run:
@@ -81,13 +83,15 @@ def scan(
         raise typer.Exit(1)
 
     dry_run_label = "\n[yellow]Mode: DRY-RUN (write tools blocked)[/yellow]" if cfg.scan.dry_run else ""
-    console.print(Panel.fit(
-        f"[bold magenta]Nerve[/bold magenta] v{__version__} — AI Security Audit\n"
-        f"Target: [cyan]{target}[/cyan]\n"
-        f"LLM: [green]{cfg.llm.provider}/{cfg.llm.model}[/green]\n"
-        f"Formats: {fmt}{dry_run_label}",
-        border_style="magenta",
-    ))
+    console.print(
+        Panel.fit(
+            f"[bold magenta]Nerve[/bold magenta] v{__version__} — AI Security Audit\n"
+            f"Target: [cyan]{target}[/cyan]\n"
+            f"LLM: [green]{cfg.llm.provider}/{cfg.llm.model}[/green]\n"
+            f"Formats: {fmt}{dry_run_label}",
+            border_style="magenta",
+        )
+    )
 
     asyncio.run(_run_scan(cfg, verbose))
 
@@ -145,7 +149,11 @@ def _print_summary(result) -> None:
     table = Table(title="Scan Summary", border_style="magenta")
     table.add_column("Metric", style="cyan")
     table.add_column("Value", style="white")
-    table.add_row("Risk Score", f"[{'red' if result.risk_score > 50 else 'yellow' if result.risk_score > 20 else 'green'}]{result.risk_score:.0f}/100[/]")
+    table.add_row(
+        "Risk Score",
+        f"[{'red' if result.risk_score > 50 else 'yellow' if result.risk_score > 20 else 'green'}]"
+        f"{result.risk_score:.0f}/100[/]",
+    )
     table.add_row("Critical", f"[red]{result.critical_count}[/red]")
     table.add_row("High", f"[orange1]{result.high_count}[/orange1]")
     table.add_row("Medium", f"[yellow]{result.medium_count}[/yellow]")
@@ -161,11 +169,11 @@ def _print_summary(result) -> None:
 def discover(
     target: str = typer.Argument(..., help="Target host, URL, or CIDR range"),
     ports: str = typer.Option("11434,8000,8080,3000,4000,6333,8001", "--ports", help="Ports to scan"),
-    config: Optional[str] = typer.Option(None, "--config", "-c"),
-    llm_api_key: Optional[str] = typer.Option(None, "--llm-api-key"),
-    llm_model: Optional[str] = typer.Option(None, "--llm-model"),
+    config: str | None = typer.Option(None, "--config", "-c"),
+    llm_api_key: str | None = typer.Option(None, "--llm-api-key"),
+    llm_model: str | None = typer.Option(None, "--llm-model"),
     fmt: str = typer.Option("json", "--format", "-f"),
-    output: Optional[str] = typer.Option(None, "--output", "-o"),
+    output: str | None = typer.Option(None, "--output", "-o"),
 ) -> None:
     """Discover AI services on a network — no testing, just finding."""
     overrides = {k: v for k, v in locals().items() if v is not None and k not in ("config", "ports", "fmt")}
@@ -186,11 +194,11 @@ def discover(
 def probe(
     target: str = typer.Argument(..., help="LLM endpoint URL"),
     model: str = typer.Option("", "--model", "-m", help="Model name to test"),
-    config: Optional[str] = typer.Option(None, "--config", "-c"),
-    llm_api_key: Optional[str] = typer.Option(None, "--llm-api-key"),
-    llm_model: Optional[str] = typer.Option(None, "--llm-model"),
+    config: str | None = typer.Option(None, "--config", "-c"),
+    llm_api_key: str | None = typer.Option(None, "--llm-api-key"),
+    llm_model: str | None = typer.Option(None, "--llm-model"),
     fmt: str = typer.Option("json", "--format", "-f"),
-    output: Optional[str] = typer.Option(None, "--output", "-o"),
+    output: str | None = typer.Option(None, "--output", "-o"),
 ) -> None:
     """Test an LLM endpoint for prompt injection, jailbreak, and safety bypass."""
     overrides = {k: v for k, v in locals().items() if v is not None and k not in ("config", "model", "fmt")}
@@ -212,12 +220,12 @@ def probe(
 def mcpscan(
     target: str = typer.Argument(..., help="MCP server URL"),
     mcp_transport: str = typer.Option("sse", "--mcp-transport", help="MCP transport (sse or stdio)"),
-    mcp_token: Optional[str] = typer.Option(None, "--mcp-token"),
-    config: Optional[str] = typer.Option(None, "--config", "-c"),
-    llm_api_key: Optional[str] = typer.Option(None, "--llm-api-key"),
-    llm_model: Optional[str] = typer.Option(None, "--llm-model"),
+    mcp_token: str | None = typer.Option(None, "--mcp-token"),
+    config: str | None = typer.Option(None, "--config", "-c"),
+    llm_api_key: str | None = typer.Option(None, "--llm-api-key"),
+    llm_model: str | None = typer.Option(None, "--llm-model"),
     fmt: str = typer.Option("json", "--format", "-f"),
-    output: Optional[str] = typer.Option(None, "--output", "-o"),
+    output: str | None = typer.Option(None, "--output", "-o"),
 ) -> None:
     """Audit an MCP server for tool poisoning, SSRF, auth bypass."""
     overrides = {k: v for k, v in locals().items() if v is not None and k not in ("config", "fmt")}
@@ -225,7 +233,13 @@ def mcpscan(
     overrides["target"] = target
     cfg = NerveConfig.load(config_path=config, cli_overrides=overrides)
     cfg.scan.categories = ["mcp_audit"]
-    cfg.scan.skip_categories = ["discovery", "model_probe", "infra_audit", "rag_audit", "agent_chain"]
+    cfg.scan.skip_categories = [
+        "discovery",
+        "model_probe",
+        "infra_audit",
+        "rag_audit",
+        "agent_chain",
+    ]
 
     if not cfg.llm.api_key:
         console.print("[red]Error: LLM API key required.[/red]")
@@ -238,11 +252,11 @@ def mcpscan(
 @app.command()
 def ragscan(
     target: str = typer.Argument(..., help="Application URL with RAG pipeline"),
-    qdrant_url: Optional[str] = typer.Option(None, "--qdrant-url"),
-    qdrant_api_key: Optional[str] = typer.Option(None, "--qdrant-api-key"),
-    weaviate_url: Optional[str] = typer.Option(None, "--weaviate-url"),
-    config: Optional[str] = typer.Option(None, "--config", "-c"),
-    llm_api_key: Optional[str] = typer.Option(None, "--llm-api-key"),
+    qdrant_url: str | None = typer.Option(None, "--qdrant-url"),
+    qdrant_api_key: str | None = typer.Option(None, "--qdrant-api-key"),
+    weaviate_url: str | None = typer.Option(None, "--weaviate-url"),
+    config: str | None = typer.Option(None, "--config", "-c"),
+    llm_api_key: str | None = typer.Option(None, "--llm-api-key"),
     fmt: str = typer.Option("json", "--format", "-f"),
 ) -> None:
     """Audit RAG pipeline — vector DB access, document injection, retrieval poisoning."""
@@ -251,7 +265,13 @@ def ragscan(
     overrides["target"] = target
     cfg = NerveConfig.load(config_path=config, cli_overrides=overrides)
     cfg.scan.categories = ["rag_audit"]
-    cfg.scan.skip_categories = ["discovery", "model_probe", "mcp_audit", "infra_audit", "agent_chain"]
+    cfg.scan.skip_categories = [
+        "discovery",
+        "model_probe",
+        "mcp_audit",
+        "infra_audit",
+        "agent_chain",
+    ]
 
     if not cfg.llm.api_key:
         console.print("[red]Error: LLM API key required.[/red]")
@@ -269,6 +289,7 @@ def report(
 ) -> None:
     """Generate reports from previous scan results."""
     from pathlib import Path
+
     from nerve.models.scan import ScanResult
     from nerve.report import ReportEngine
 

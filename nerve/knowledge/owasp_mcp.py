@@ -28,8 +28,7 @@ OWASP_MCP_TOP10: dict[str, dict] = {
         "id": "MCP02",
         "title": "Privilege Escalation via Scope Creep",
         "description": (
-            "MCP server permissions expand beyond intended scope — agents gain "
-            "capabilities they shouldn't have."
+            "MCP server permissions expand beyond intended scope — agents gain capabilities they shouldn't have."
         ),
         "attack_vectors": [
             "weak_scope_enforcement",
@@ -74,8 +73,7 @@ OWASP_MCP_TOP10: dict[str, dict] = {
         "id": "MCP04",
         "title": "Supply Chain Attacks & Dependency Tampering",
         "description": (
-            "Compromised dependencies alter agent behavior or introduce backdoors "
-            "into MCP server functionality."
+            "Compromised dependencies alter agent behavior or introduce backdoors into MCP server functionality."
         ),
         "attack_vectors": [
             "malicious_packages",
@@ -201,8 +199,7 @@ OWASP_MCP_TOP10: dict[str, dict] = {
         "id": "MCP10",
         "title": "Context Injection & Over-Sharing",
         "description": (
-            "Shared or persistent context windows leak sensitive information "
-            "between tasks, users, or agents."
+            "Shared or persistent context windows leak sensitive information between tasks, users, or agents."
         ),
         "attack_vectors": [
             "cross_task_leakage",

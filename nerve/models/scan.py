@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, computed_field
@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, computed_field
 from nerve.models.finding import Finding, KillChain, Severity
 
 
-class ScanStatus(str, Enum):
+class ScanStatus(StrEnum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -25,7 +25,7 @@ class ScanResult(BaseModel):
     scan_id: str = Field(default_factory=lambda: uuid4().hex[:16])
     target: str = ""
     status: ScanStatus = ScanStatus.PENDING
-    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     duration_seconds: float = 0.0
 

@@ -8,7 +8,6 @@ import httpx
 import structlog
 
 from nerve.utils.rate_limiter import RateLimiter
-from nerve.utils.sanitizer import sanitize
 
 logger = structlog.get_logger()
 
@@ -44,9 +43,7 @@ async def http_request(
                 c[k.strip()] = v.strip()
 
     try:
-        async with httpx.AsyncClient(
-            timeout=timeout, verify=False, follow_redirects=follow_redirects
-        ) as client:
+        async with httpx.AsyncClient(timeout=timeout, verify=False, follow_redirects=follow_redirects) as client:
             r = await client.request(
                 method=method.upper(),
                 url=url,
@@ -55,11 +52,7 @@ async def http_request(
                 cookies=c or None,
             )
             response_body = r.text[:_MAX_RESPONSE_SIZE]
-            return (
-                f"STATUS: {r.status_code}\n"
-                f"HEADERS: {json.dumps(dict(r.headers), indent=2)}\n"
-                f"BODY:\n{response_body}"
-            )
+            return f"STATUS: {r.status_code}\nHEADERS: {json.dumps(dict(r.headers), indent=2)}\nBODY:\n{response_body}"
     except Exception as e:
         return f"ERROR: {e}"
 
@@ -91,9 +84,6 @@ async def http_post_json(
         async with httpx.AsyncClient(timeout=timeout, verify=False) as client:
             r = await client.post(url, json=data, headers=h)
             response_body = r.text[:_MAX_RESPONSE_SIZE]
-            return (
-                f"STATUS: {r.status_code}\n"
-                f"BODY:\n{response_body}"
-            )
+            return f"STATUS: {r.status_code}\nBODY:\n{response_body}"
     except Exception as e:
         return f"ERROR: {e}"

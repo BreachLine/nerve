@@ -58,7 +58,7 @@ async def mcp_connect(
         except Exception as e:
             return f"MCP CONNECT ERROR: {e}"
     else:
-        return f"MCP stdio transport: command-based connection not available via HTTP tools. Use mcp SDK directly."
+        return "MCP stdio transport: command-based connection not available via HTTP tools. Use mcp SDK directly."
 
 
 async def mcp_list_tools(

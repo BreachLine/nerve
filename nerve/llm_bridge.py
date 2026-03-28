@@ -41,14 +41,16 @@ async def _request_with_retry(
                 return r
             # Retryable status — fall through to backoff
             last_exc = httpx.HTTPStatusError(
-                f"HTTP {r.status_code}", request=r.request, response=r,
+                f"HTTP {r.status_code}",
+                request=r.request,
+                response=r,
             )
         except (httpx.ConnectError, httpx.ReadTimeout, httpx.WriteTimeout) as e:
             last_exc = e
             if attempt == _MAX_RETRIES:
                 raise
 
-        delay = _BASE_DELAY * (2 ** attempt) + random.uniform(0, 0.5)  # noqa: S311
+        delay = _BASE_DELAY * (2**attempt) + random.uniform(0, 0.5)  # noqa: S311
         logger.warning(
             "llm_request_retry",
             attempt=attempt + 1,
@@ -140,9 +142,7 @@ async def _call_google(
             text_parts.append(part["text"])
         elif "functionCall" in part:
             fc = part["functionCall"]
-            text_parts.append(
-                f'ACTION: {{"tool": "{fc["name"]}", "parameters": {json.dumps(fc.get("args", {}))}}}'
-            )
+            text_parts.append(f'ACTION: {{"tool": "{fc["name"]}", "parameters": {json.dumps(fc.get("args", {}))}}}')
 
     return "\n".join(text_parts)
 
@@ -256,9 +256,7 @@ async def _call_openai_compat(
             parts.append(content)
         for tc in tool_calls:
             fn = tc.get("function", {})
-            parts.append(
-                f'ACTION: {{"tool": "{fn.get("name", "")}", "parameters": {fn.get("arguments", "{}")}}}'
-            )
+            parts.append(f'ACTION: {{"tool": "{fn.get("name", "")}", "parameters": {fn.get("arguments", "{}")}}}')
         return "\n".join(parts)
 
     return content or ""
@@ -270,11 +268,13 @@ def _convert_tools_to_gemini(tools: list[dict]) -> list[dict]:
     for tool in tools:
         if tool.get("type") == "function":
             fn = tool["function"]
-            declarations.append({
-                "name": fn["name"],
-                "description": fn.get("description", ""),
-                "parameters": fn.get("parameters", {}),
-            })
+            declarations.append(
+                {
+                    "name": fn["name"],
+                    "description": fn.get("description", ""),
+                    "parameters": fn.get("parameters", {}),
+                }
+            )
     if declarations:
         return [{"functionDeclarations": declarations}]
     return []

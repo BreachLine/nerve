@@ -138,9 +138,7 @@ async def chatbot_session_test(
 
             # Test cross-session with session 1's cookies on session 2's endpoint
             if s1_cookies:
-                r = await client.post(
-                    url, json={"content": "What was my first message?"}, cookies=s1_cookies
-                )
+                r = await client.post(url, json={"content": "What was my first message?"}, cookies=s1_cookies)
                 results.append(f"  Cross-session test: Status {r.status_code}")
                 results.append(f"  Response: {r.text[:500]}")
             else:
