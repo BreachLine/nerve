@@ -90,6 +90,7 @@ scan:
   timeout: 600
   rate_limit: 10
   max_iterations: 20
+  dry_run: false       # Set true to block write tools (vector_insert, mcp_call_tool, http_post_json)
   categories:
     - discovery
     - model_probe

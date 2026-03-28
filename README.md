@@ -1,8 +1,9 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/nerve-v0.1.0-8B5CF6?style=for-the-badge&labelColor=000000" alt="version" />
-  <img src="https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&labelColor=000000" alt="python" />
-  <img src="https://img.shields.io/badge/license-MIT-22C55E?style=for-the-badge&labelColor=000000" alt="license" />
-  <img src="https://img.shields.io/badge/built_on-ReactSwarm-0EA5E9?style=for-the-badge&labelColor=000000" alt="reactswarm" />
+  <a href="https://github.com/BreachLine/nerve/actions/workflows/ci.yml"><img src="https://github.com/BreachLine/nerve/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://pypi.org/project/nerve-ai/"><img src="https://img.shields.io/pypi/v/nerve-ai?color=8B5CF6&label=pypi" alt="PyPI" /></a>
+  <img src="https://img.shields.io/badge/python-3.11+-3776AB" alt="python" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-22C55E" alt="license" /></a>
+  <img src="https://img.shields.io/badge/built_on-ReactSwarm-0EA5E9" alt="reactswarm" />
 </p>
 
 <h1 align="center">
@@ -255,7 +256,7 @@ Nerve's agents are trained on comprehensive security methodology:
 - **MITRE ATLAS v5.4.0** — 16 tactics, 84 techniques for AI/ML adversarial threats
 - **CVE Database** — Known vulnerabilities for Ollama, vLLM, MCP servers, LangChain, etc.
 - **CWE Mapping** — Automatic classification of findings to CWE identifiers
-- **Attack Technique Library** — 20+ techniques across 7 categories with step-by-step methodology
+- **Attack Technique Library** — 25 techniques across 9 categories (prompt injection, system prompt extraction, MCP attacks, RAG attacks, infrastructure, model extraction, excessive agency, output manipulation, agent chains)
 
 ### LLM-Driven Payload Generation
 
@@ -289,6 +290,7 @@ nerve scan --target <URL|CIDR> [OPTIONS]
 #   --redis-url          Enable persistent scans with Redis
 #   --config             Path to nerve.yaml config file
 #   --verbose            Show agent reasoning live
+#   --dry-run            Read-only mode — block tools that modify external state
 ```
 
 ### `nerve discover` — Network discovery only

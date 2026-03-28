@@ -73,7 +73,9 @@ nerve = "nerve.main:app"
 [project.urls]
 Homepage = "https://github.com/BreachLine/nerve"
 Repository = "https://github.com/BreachLine/nerve"
+Documentation = "https://github.com/BreachLine/nerve/tree/main/docs"
 Issues = "https://github.com/BreachLine/nerve/issues"
+Changelog = "https://github.com/BreachLine/nerve/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["nerve"]

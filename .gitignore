@@ -19,5 +19,8 @@ htmlcov/
 .ruff_cache/
 .mypy_cache/
 nerve-reports/
+nerve-*.json
+nerve-*.html
+test-reports*/
 *.sarif
 .DS_Store
