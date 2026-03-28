@@ -31,5 +31,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - run: pip install "reactswarm[all] @ git+https://github.com/BreachLine/reactswarm.git"
       - run: pip install -e ".[dev]"
       - run: pytest --tb=short -q
