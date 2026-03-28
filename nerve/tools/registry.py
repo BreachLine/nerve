@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+import structlog
 from reactswarm import ToolRegistry
 
 from nerve.tools.chatbot import chatbot_multi_turn, chatbot_send, chatbot_session_test
@@ -24,9 +27,40 @@ from nerve.tools.network import dns_resolve, http_fingerprint, port_scan, tls_ch
 from nerve.tools.vector_db import vector_insert, vector_list_collections, vector_search
 from nerve.utils.rate_limiter import RateLimiter
 
+logger = structlog.get_logger()
 
-def create_tool_registry(rate_limiter: RateLimiter | None = None) -> ToolRegistry:
-    """Create and populate the Nerve tool registry with all 24 tools."""
+# Tools that can modify external state and should be blocked in --dry-run mode.
+# vector_insert: writes to vector databases
+# mcp_call_tool: executes arbitrary MCP server tools (may have side effects)
+# http_post_json: sends POST requests that could modify external state
+_WRITE_TOOLS = frozenset({"vector_insert", "mcp_call_tool", "http_post_json"})
+
+
+def _dry_run_stub(tool_name: str) -> Any:
+    """Return an async stub that logs the blocked call instead of executing."""
+
+    async def _blocked(**kwargs: Any) -> str:
+        safe_keys = list(kwargs.keys())
+        logger.info("dry_run_blocked", tool=tool_name, arg_keys=safe_keys)
+        return (
+            f"DRY-RUN: {tool_name} was not executed because --dry-run is active. "
+            f"This tool modifies external state. Provided args: {safe_keys}"
+        )
+
+    return _blocked
+
+
+def create_tool_registry(
+    rate_limiter: RateLimiter | None = None,
+    *,
+    dry_run: bool = False,
+) -> ToolRegistry:
+    """Create and populate the Nerve tool registry with all 24 tools.
+
+    When *dry_run* is ``True``, tools that modify external state
+    (vector_insert, mcp_call_tool) are replaced with safe stubs that
+    log the call but perform no I/O.
+    """
     registry = ToolRegistry()
     rl = rate_limiter or RateLimiter(rate=10.0)
 
@@ -67,9 +101,18 @@ def create_tool_registry(rate_limiter: RateLimiter | None = None) -> ToolRegistr
     )
     registry.register(
         "http_post_json",
-        handler=lambda url="", json_body="", headers="": http_post_json(url, json_body, headers, rate_limiter=rl),
+        handler=(
+            _dry_run_stub("http_post_json")
+            if dry_run
+            else lambda url="", json_body="", headers="": http_post_json(
+                url, json_body, headers, rate_limiter=rl,
+            )
+        ),
         category="http",
-        description="POST JSON to a URL. Convenience wrapper for LLM probing.",
+        description=(
+            "POST JSON to a URL. Convenience wrapper for LLM probing."
+            + (" [BLOCKED in --dry-run mode]" if dry_run else "")
+        ),
     )
 
     # ─── LLM connector tools ────────────────────────────────────
@@ -125,11 +168,18 @@ def create_tool_registry(rate_limiter: RateLimiter | None = None) -> ToolRegistr
     )
     registry.register(
         "mcp_call_tool",
-        handler=lambda target="", tool_name="", arguments_json="{}", token="": mcp_call_tool(
-            target, tool_name, arguments_json, token, rate_limiter=rl
+        handler=(
+            _dry_run_stub("mcp_call_tool")
+            if dry_run
+            else lambda target="", tool_name="", arguments_json="{}", token="": mcp_call_tool(
+                target, tool_name, arguments_json, token, rate_limiter=rl
+            )
         ),
         category="mcp",
-        description="Call a specific tool on an MCP server with given arguments.",
+        description=(
+            "Call a specific tool on an MCP server with given arguments."
+            + (" [BLOCKED in --dry-run mode]" if dry_run else "")
+        ),
     )
     registry.register(
         "mcp_list_resources",
@@ -157,11 +207,18 @@ def create_tool_registry(rate_limiter: RateLimiter | None = None) -> ToolRegistr
     )
     registry.register(
         "vector_insert",
-        handler=lambda db_type="qdrant", url="", api_key="", collection="", text="", metadata="{}": vector_insert(
-            db_type, url, api_key, collection, text, metadata, rate_limiter=rl
+        handler=(
+            _dry_run_stub("vector_insert")
+            if dry_run
+            else lambda db_type="qdrant", url="", api_key="", collection="", text="", metadata="{}": vector_insert(
+                db_type, url, api_key, collection, text, metadata, rate_limiter=rl
+            )
         ),
         category="vector_db",
-        description="Insert test document into vector DB — tests write access control.",
+        description=(
+            "Insert test document into vector DB — tests write access control."
+            + (" [BLOCKED in --dry-run mode]" if dry_run else "")
+        ),
     )
 
     # ─── Chatbot tools ───────────────────────────────────────────

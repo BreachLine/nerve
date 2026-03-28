@@ -6,14 +6,59 @@ the actual API calls to Anthropic, OpenAI, Google, and OpenAI-compatible endpoin
 
 from __future__ import annotations
 
+import asyncio
 import json
-import logging
+import random
 from typing import Any
 
 import httpx
+import structlog
 from reactswarm.llm.providers import LLMProvider, ProviderConfig
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
+
+_RETRYABLE_STATUS_CODES = frozenset({429, 500, 502, 503})
+_MAX_RETRIES = 3
+_BASE_DELAY = 1.0
+
+
+async def _request_with_retry(
+    client: httpx.AsyncClient,
+    method: str,
+    url: str,
+    **kwargs: Any,
+) -> httpx.Response:
+    """Execute an HTTP request with exponential backoff on transient failures.
+
+    Retries on 429/500/502/503 status codes and connection/timeout errors.
+    """
+    last_exc: Exception | None = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            r = await client.request(method, url, **kwargs)
+            if r.status_code not in _RETRYABLE_STATUS_CODES or attempt == _MAX_RETRIES:
+                r.raise_for_status()
+                return r
+            # Retryable status — fall through to backoff
+            last_exc = httpx.HTTPStatusError(
+                f"HTTP {r.status_code}", request=r.request, response=r,
+            )
+        except (httpx.ConnectError, httpx.ReadTimeout, httpx.WriteTimeout) as e:
+            last_exc = e
+            if attempt == _MAX_RETRIES:
+                raise
+
+        delay = _BASE_DELAY * (2 ** attempt) + random.uniform(0, 0.5)  # noqa: S311
+        logger.warning(
+            "llm_request_retry",
+            attempt=attempt + 1,
+            delay=f"{delay:.1f}s",
+            error=str(last_exc),
+        )
+        await asyncio.sleep(delay)
+
+    # Should not reach here, but satisfy type checker
+    raise last_exc  # type: ignore[misc]
 
 
 async def llm_call_fn(
@@ -80,8 +125,7 @@ async def _call_google(
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
 
     async with httpx.AsyncClient(timeout=config.timeout_seconds) as client:
-        r = await client.post(url, json=payload)
-        r.raise_for_status()
+        r = await _request_with_retry(client, "POST", url, json=payload)
         data = r.json()
 
     # Extract text from response
@@ -140,7 +184,9 @@ async def _call_anthropic(
     url = f"{url.rstrip('/')}/v1/messages"
 
     async with httpx.AsyncClient(timeout=config.timeout_seconds) as client:
-        r = await client.post(
+        r = await _request_with_retry(
+            client,
+            "POST",
             url,
             json=payload,
             headers={
@@ -149,7 +195,6 @@ async def _call_anthropic(
                 "content-type": "application/json",
             },
         )
-        r.raise_for_status()
         data = r.json()
 
     # Extract text
@@ -196,8 +241,7 @@ async def _call_openai_compat(
         headers["Authorization"] = f"Bearer {api_key}"
 
     async with httpx.AsyncClient(timeout=config.timeout_seconds) as client:
-        r = await client.post(url, json=payload, headers=headers)
-        r.raise_for_status()
+        r = await _request_with_retry(client, "POST", url, json=payload, headers=headers)
         data = r.json()
 
     choice = data.get("choices", [{}])[0]

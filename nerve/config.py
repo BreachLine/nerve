@@ -63,6 +63,7 @@ class ScanConfig(BaseModel):
     timeout: int = 600
     rate_limit: int = 10
     max_iterations: int = 20
+    dry_run: bool = False
     categories: list[str] = Field(
         default_factory=lambda: [
             "discovery",
@@ -157,6 +158,8 @@ class NerveConfig(BaseModel):
             config.scan.rate_limit = int(rate_limit)
         if fail_on := overrides.get("fail_on"):
             config.output.fail_on = fail_on
+        if overrides.get("dry_run"):
+            config.scan.dry_run = True
 
         # Target auth
         if v := overrides.get("target_api_key"):

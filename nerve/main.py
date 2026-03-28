@@ -52,6 +52,10 @@ def scan(
     timeout: int = typer.Option(600, "--timeout", help="Max scan duration in seconds"),
     rate_limit: int = typer.Option(10, "--rate-limit", help="Max requests/second to target"),
     fail_on: Optional[str] = typer.Option(None, "--fail-on", help="Exit 1 if findings >= severity (critical,high,medium,low)"),
+    dry_run: bool = typer.Option(
+        False, "--dry-run",
+        help="Read-only mode — block tools that modify external state",
+    ),
     no_color: bool = typer.Option(False, "--no-color", help="Disable colored output"),
     target_api_key: Optional[str] = typer.Option(None, "--target-api-key", help="Target's API key"),
     target_bearer_token: Optional[str] = typer.Option(None, "--target-bearer-token", help="Target's bearer token"),
@@ -64,9 +68,11 @@ def scan(
     weaviate_url: Optional[str] = typer.Option(None, "--weaviate-url", help="Weaviate URL"),
 ) -> None:
     """Full autonomous AI security scan — discover, test, and report."""
-    overrides = {k: v for k, v in locals().items() if v is not None and k not in ("config", "no_color", "fmt")}
+    overrides = {k: v for k, v in locals().items() if v is not None and k not in ("config", "no_color", "fmt", "dry_run")}
     overrides["format"] = fmt
     overrides["target"] = target
+    if dry_run:
+        overrides["dry_run"] = True
 
     cfg = NerveConfig.load(config_path=config, cli_overrides=overrides)
 
@@ -74,11 +80,12 @@ def scan(
         console.print("[red]Error: LLM API key required. Set --llm-api-key or NERVE_LLM_API_KEY env var.[/red]")
         raise typer.Exit(1)
 
+    dry_run_label = "\n[yellow]Mode: DRY-RUN (write tools blocked)[/yellow]" if cfg.scan.dry_run else ""
     console.print(Panel.fit(
         f"[bold magenta]Nerve[/bold magenta] v{__version__} — AI Security Audit\n"
         f"Target: [cyan]{target}[/cyan]\n"
         f"LLM: [green]{cfg.llm.provider}/{cfg.llm.model}[/green]\n"
-        f"Formats: {fmt}",
+        f"Formats: {fmt}{dry_run_label}",
         border_style="magenta",
     ))
 

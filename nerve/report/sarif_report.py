@@ -17,6 +17,8 @@ _SARIF_SEVERITY_MAP = {
 
 
 def render_sarif(result: ScanResult) -> str:
+    from nerve import __version__
+
     rules: list[dict] = []
     results: list[dict] = []
     rule_ids_seen: set[str] = set()
@@ -68,7 +70,7 @@ def render_sarif(result: ScanResult) -> str:
                 "tool": {
                     "driver": {
                         "name": "Nerve",
-                        "version": "0.1.0",
+                        "version": __version__,
                         "informationUri": "https://github.com/BreachLine/nerve",
                         "rules": rules,
                     }

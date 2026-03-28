@@ -120,11 +120,59 @@ CVE_DATABASE: list[dict] = [
 ]
 
 
+def _parse_version(v: str) -> tuple[int, ...]:
+    """Parse a version string like '0.12.3' into a comparable tuple."""
+    parts: list[int] = []
+    for segment in v.strip().split("."):
+        digits = ""
+        for ch in segment:
+            if ch.isdigit():
+                digits += ch
+            else:
+                break
+        parts.append(int(digits) if digits else 0)
+    return tuple(parts)
+
+
+def _version_matches(version: str, constraint: str) -> bool:
+    """Check if a version satisfies an affected_versions constraint.
+
+    Supports: '*', '<=X', '<X', '>=X', '>X', '=X', 'X' (exact).
+    """
+    constraint = constraint.strip()
+    if not version or constraint == "*":
+        return True
+
+    parsed = _parse_version(version)
+
+    if constraint.startswith("<="):
+        return parsed <= _parse_version(constraint[2:])
+    if constraint.startswith("<"):
+        return parsed < _parse_version(constraint[1:])
+    if constraint.startswith(">="):
+        return parsed >= _parse_version(constraint[2:])
+    if constraint.startswith(">"):
+        return parsed > _parse_version(constraint[1:])
+    if constraint.startswith("="):
+        return parsed == _parse_version(constraint[1:])
+    # Bare version string — treat as exact match
+    return parsed == _parse_version(constraint)
+
+
 def lookup_cves(product: str, version: str = "") -> list[dict]:
-    """Find CVEs matching a product name and optionally version."""
+    """Find CVEs matching a product name and optionally version.
+
+    When *version* is provided, only CVEs whose ``affected_versions``
+    constraint matches the given version are returned.  When *version*
+    is empty, all CVEs for the product are returned (conservative —
+    assume affected until proven otherwise).
+    """
     product_lower = product.lower()
     matches = []
     for cve in CVE_DATABASE:
-        if product_lower in cve["product"].lower():
-            matches.append(cve)
+        if product_lower not in cve["product"].lower():
+            continue
+        if version and not _version_matches(version, cve.get("affected_versions", "*")):
+            continue
+        matches.append(cve)
     return matches

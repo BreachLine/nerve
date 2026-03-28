@@ -25,6 +25,27 @@ from nerve.utils.rate_limiter import RateLimiter
 
 logger = structlog.get_logger()
 
+
+def _deduplicate_findings(findings: list[Finding]) -> list[Finding]:
+    """Remove duplicate findings across agents.
+
+    Two findings are considered duplicates when they share the same title
+    and target.  When duplicates exist the finding with the higher severity
+    is kept (or the first occurrence if severity is equal).
+    """
+    from nerve.models.finding import SEVERITY_ORDER
+
+    seen: dict[tuple[str, str], Finding] = {}
+    for f in findings:
+        key = (f.title.lower().strip(), f.target.lower().strip())
+        existing = seen.get(key)
+        if existing is None:
+            seen[key] = f
+        elif SEVERITY_ORDER[f.severity] > SEVERITY_ORDER[existing.severity]:
+            seen[key] = f
+    return list(seen.values())
+
+
 # Map string provider names to ReactSwarm LLMProvider enum
 _PROVIDER_MAP = {
     "anthropic": LLMProvider.ANTHROPIC,
@@ -57,7 +78,9 @@ class NerveOrchestrator:
     async def initialize(self) -> None:
         """Set up tools, LLM router, and intelligence sharing."""
         # Tool registry
-        self._registry = create_tool_registry(self._rate_limiter)
+        self._registry = create_tool_registry(
+            self._rate_limiter, dry_run=self.config.scan.dry_run,
+        )
 
         # LLM router
         providers = [
@@ -187,6 +210,9 @@ class NerveOrchestrator:
 
                 if on_progress:
                     on_progress("Phase 2: Parallel Testing", "complete", findings=len(all_findings))
+
+            # ── Deduplicate before chain analysis ───────────────
+            all_findings = _deduplicate_findings(all_findings)
 
             # ── Phase 3: Chain Analysis ──────────────────────────
             if "agent_chain" not in skip and all_findings:
